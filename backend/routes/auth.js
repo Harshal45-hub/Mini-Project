@@ -125,10 +125,14 @@ router.post('/login', async (req, res) => {
 // Admin Login
 router.post('/admin-login', async (req, res) => {
     try {
-        const { email, password, secretKey } = req.body;
+        console.log(req.body);
+        const { email, password } = req.body;
+
 
         // Verify admin secret key
-        if (secretKey !== process.env.ADMIN_SECRET_KEY) {
+        // console.log(typeof password);
+        // console.log(typeof process.env.ADMIN_SECRET_KEY);
+        if (password !== process.env.ADMIN_SECRET_KEY) {
             return res.status(401).json({ 
                 message: 'Invalid admin secret key.' 
             });
@@ -139,7 +143,7 @@ router.post('/admin-login', async (req, res) => {
             email, 
             role: 'admin' 
         });
-        
+        console.log(user);
         if (!user) {
             return res.status(401).json({ 
                 message: 'Admin not found.' 
@@ -178,6 +182,14 @@ router.post('/admin-login', async (req, res) => {
         });
     }
 });
+
+const bcrypt = require('bcrypt');
+
+bcrypt.hash('admin123', 10).then(hash => {
+    console.log(hash);
+});
+
+console.log(bcrypt);
 
 // Department Login
 router.post('/department-login', async (req, res) => {

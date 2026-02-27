@@ -3,6 +3,9 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import axios from 'axios';
 
+// Set axios base URL
+axios.defaults.baseURL = 'http://localhost:5000';
+
 function AdminLogin() {
     const [formData, setFormData] = useState({
         email: '',
@@ -27,31 +30,29 @@ function AdminLogin() {
         setLoading(true);
 
         try {
-            // Simulate admin login
-            // In production, use: axios.post('/api/auth/admin-login', formData)
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            
-            // Mock response
-            const mockResponse = {
-                data: {
-                    token: 'mock-admin-token',
-                    user: {
-                        id: 'admin123',
-                        name: 'System Administrator',
-                        email: formData.email,
-                        role: 'admin'
-                    }
-                }
-            };
+            console.log('Attempting admin login with:', { 
+                email: formData.email, 
+                secretKey: formData.secretKey 
+            });
 
-            if (formData.secretKey !== 'admin123') {
-                throw new Error('Invalid admin key');
-            }
+            // Use full URL or relative with proxy
+            const response = await axios.post('/api/auth/admin-login', {
+                email: formData.email,
+                password: formData.password,
+                secretKey: formData.secretKey
+            });
 
-            login(mockResponse.data.token, mockResponse.data.user);
+            console.log('Login response:', response.data);
+
+            login(response.data.token, response.data.user);
             navigate('/admin/dashboard');
         } catch (error) {
-            setErrors({ submit: error.message || 'Admin login failed' });
+            console.error('Login error:', error);
+            console.error('Error response:', error.response);
+            
+            setErrors({ 
+                submit: error.response?.data?.message || 'Admin login failed. Please check your credentials and secret key.' 
+            });
         } finally {
             setLoading(false);
         }
@@ -116,7 +117,7 @@ function AdminLogin() {
         },
         input: {
             width: '100%',
-            padding: '0.75rem 1rem',
+            padding: '0.75rem 1rem 0.75rem 3rem',
             background: '#374151',
             border: '1px solid #4b5563',
             borderRadius: '0.5rem',
@@ -135,8 +136,7 @@ function AdminLogin() {
             background: 'rgba(234, 179, 8, 0.1)',
             border: '1px solid rgba(234, 179, 8, 0.3)',
             borderRadius: '0.5rem',
-            padding: '1rem',
-            marginTop: '0.5rem'
+            padding: '1rem'
         },
         warningText: {
             color: '#fbbf24',
@@ -201,7 +201,7 @@ function AdminLogin() {
                                 value={formData.email}
                                 onChange={handleChange}
                                 placeholder="admin@civicconnect.gov.in"
-                                style={{ ...pageStyles.input, paddingLeft: '3rem' }}
+                                style={pageStyles.input}
                             />
                         </div>
                     </div>
@@ -217,7 +217,7 @@ function AdminLogin() {
                                 value={formData.password}
                                 onChange={handleChange}
                                 placeholder="••••••••"
-                                style={{ ...pageStyles.input, paddingLeft: '3rem' }}
+                                style={pageStyles.input}
                             />
                         </div>
                     </div>
@@ -232,16 +232,15 @@ function AdminLogin() {
                                 required
                                 value={formData.secretKey}
                                 onChange={handleChange}
-                                placeholder="Enter secret key"
-                                style={{ ...pageStyles.input, paddingLeft: '3rem' }}
+                                placeholder="Enter admin secret key"
+                                style={pageStyles.input}
                             />
                         </div>
                     </div>
                     
                     <div style={pageStyles.warningBox}>
                         <p style={pageStyles.warningText}>
-                            <strong>Warning:</strong> This portal is for authorized personnel only. 
-                            Unauthorized access is prohibited.
+                            <strong>⚠️ Warning:</strong> This portal is for authorized personnel only.
                         </p>
                     </div>
                     
@@ -256,18 +255,26 @@ function AdminLogin() {
                     >
                         {loading ? (
                             <>
-                                <div className="loading-spinner" style={{ width: '1rem', height: '1rem', borderColor: 'rgba(255,255,255,0.3)' }}></div>
+                                <div className="loading-spinner" style={{ 
+                                    width: '1rem', 
+                                    height: '1rem', 
+                                    borderColor: 'rgba(255,255,255,0.3)',
+                                    borderTopColor: 'white'
+                                }}></div>
                                 <span>Authenticating...</span>
                             </>
                         ) : (
-                            'Access Admin Panel'
+                            <>
+                                <i className="fas fa-sign-in-alt"></i>
+                                <span>Access Admin Panel</span>
+                            </>
                         )}
                     </button>
                 </form>
                 
                 <div style={pageStyles.linkContainer}>
                     <p style={{ color: '#9ca3af', fontSize: '0.875rem' }}>
-                        Are you a user?{' '}
+                        Are you a regular user?{' '}
                         <Link to="/login" style={pageStyles.link}>
                             User Login
                         </Link>
